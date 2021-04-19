@@ -120,6 +120,7 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
+    """
     if terminal(board):
         return None
 
@@ -145,4 +146,39 @@ def minimax(board):
                 move = action
                 choice = points
         return move
+    """
     
+    # vol 2
+
+    def maxValue(board, parentMinValue):
+        if terminal(board):
+            return (utility(board), None)
+        maxValue = -2
+        maxAction = None
+        for action in actions(board):
+            new = minValue(result(board, action), maxValue)
+            if new[0] > maxValue:
+                maxValue = new[0]
+                maxAction = action
+            if maxValue >= parentMinValue:
+                break
+        return (maxValue, maxAction)
+
+    def minValue(board, parentMaxValue):
+        if terminal(board):
+            return (utility(board), None)
+        minValue = 2
+        minAction = None
+        for action in actions(board):
+            new = maxValue(result(board, action), minValue)
+            if new[0] < minValue:
+                minValue = new[0]
+                minAction = action
+            if minValue <= parentMaxValue:
+                break
+        return (minValue, minAction)
+    
+    
+    if player(board) == X:
+        return maxValue(board, 2)[1]
+    return minValue(board, -2)[1]
