@@ -8,6 +8,11 @@ SAMPLES = 10000
 
 
 def main():
+    print(crawl("corpus0"))
+    print(transition_model(crawl("corpus0"), "2.html", DAMPING))
+    print(sample_pagerank(crawl("corpus0"), DAMPING, 1000))
+    print(iterate_pagerank(crawl("corpus0"), DAMPING))
+    """
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
@@ -19,7 +24,7 @@ def main():
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
-
+    """
 
 def crawl(directory):
     """
@@ -57,7 +62,16 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+    if corpus[page] == 0:
+        return 1 / len(corpus[page])
+    probabilities = {}
+    for key in corpus[page]:
+        if key != page:
+            probabilities[key] = round((damping_factor / len(corpus[page])) + ((1 - damping_factor) / len(corpus.keys())), 3)
+    for p in corpus.keys():
+        if p not in probabilities.keys():
+            probabilities[p] = round((1 - damping_factor) * 1 / len(corpus.keys()), 3)
+    return probabilities
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -69,7 +83,28 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    keys = []
+    rank = {}
+    for key in corpus.keys():
+        keys.append(key)
+    sample = keys[random.randrange(len(corpus.keys()))]
+    for key in corpus.keys():
+            if key not in rank.keys():
+                rank[key] = 0
+    rank[sample] = 1
+    for tryies in range(n - 1):
+        probabilities = transition_model(corpus, sample, damping_factor)
+        values = []
+        for key in probabilities.keys():
+            for i in range(int(1000 * probabilities[key])):
+                values.append(key)
+        sample = values[random.randrange(len(values))]
+        rank[sample] += 1
+    for key in rank.keys():
+        rank[key] = rank[key] / n
+    return rank
+        
+        
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -81,8 +116,32 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
-
+    rank = {}
+    n = len(corpus.keys())
+    for key in corpus.keys():
+        rank[key] = 1 / n
+    while True:
+        changed = False
+        for key in rank.keys():
+            start = rank[key]
+            rank[key] = (1 - damping_factor) / n
+            pages = 0
+            for i in rank.keys():
+                if i != key:
+                    links = len(corpus[i])
+                    if links != 0:
+                        if key in corpus[i]:
+                            pages += rank[i] / links
+                    else:
+                        pages += damping_factor / n
+            rank[key] += damping_factor * pages
+            if abs(start - rank[key]) > 0.001:
+                changed = True
+        if not changed:
+            break
+    for key in rank.keys():
+        rank[key] = round(rank[key], 3)
+    return rank
 
 if __name__ == "__main__":
     main()
