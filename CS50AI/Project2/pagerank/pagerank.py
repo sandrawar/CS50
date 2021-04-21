@@ -8,11 +8,10 @@ SAMPLES = 10000
 
 
 def main():
-    print(crawl("corpus0"))
-    print(transition_model(crawl("corpus0"), "2.html", DAMPING))
-    print(sample_pagerank(crawl("corpus0"), DAMPING, 1000))
-    print(iterate_pagerank(crawl("corpus0"), DAMPING))
-    """
+    #print(crawl("corpus0"))
+    #print(transition_model(crawl("corpus0"), "2.html", DAMPING))
+    #print(sample_pagerank(crawl("corpus0"), DAMPING, 1000))
+    #print(iterate_pagerank(crawl("corpus0"), DAMPING))
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
@@ -24,7 +23,6 @@ def main():
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
-    """
 
 def crawl(directory):
     """
@@ -67,10 +65,12 @@ def transition_model(corpus, page, damping_factor):
     probabilities = {}
     for key in corpus[page]:
         if key != page:
-            probabilities[key] = round((damping_factor / len(corpus[page])) + ((1 - damping_factor) / len(corpus.keys())), 3)
+            probabilities[key] = (damping_factor / len(corpus[page])) + ((1 - damping_factor) / len(corpus.keys()))
+            #probabilities[key] = round((damping_factor / len(corpus[page])) + ((1 - damping_factor) / len(corpus.keys())), 3)
     for p in corpus.keys():
         if p not in probabilities.keys():
-            probabilities[p] = round((1 - damping_factor) * 1 / len(corpus.keys()), 3)
+            probabilities[p] = (1 - damping_factor) * 1 / len(corpus.keys())
+            #probabilities[p] = round((1 - damping_factor) * 1 / len(corpus.keys()), 3)
     return probabilities
 
 
@@ -102,9 +102,7 @@ def sample_pagerank(corpus, damping_factor, n):
         rank[sample] += 1
     for key in rank.keys():
         rank[key] = rank[key] / n
-    return rank
-        
-        
+    return rank      
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -117,6 +115,7 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
     rank = {}
+    newRank = {}
     n = len(corpus.keys())
     for key in corpus.keys():
         rank[key] = 1 / n
@@ -124,23 +123,25 @@ def iterate_pagerank(corpus, damping_factor):
         changed = False
         for key in rank.keys():
             start = rank[key]
-            rank[key] = (1 - damping_factor) / n
+            newRank[key] = (1 - damping_factor) / n
             pages = 0
             for i in rank.keys():
-                if i != key:
+                #if i != key:
                     links = len(corpus[i])
                     if links != 0:
                         if key in corpus[i]:
                             pages += rank[i] / links
                     else:
-                        pages += damping_factor / n
-            rank[key] += damping_factor * pages
-            if abs(start - rank[key]) > 0.001:
+                        pages += 1 / n
+            newRank[key] += damping_factor * pages
+        for key in rank.keys():
+            if abs(newRank[key] - rank[key]) > 0.001:
                 changed = True
+            rank[key] = newRank[key]
         if not changed:
             break
-    for key in rank.keys():
-        rank[key] = round(rank[key], 3)
+    #for key in rank.keys():
+    #    rank[key] = round(rank[key], 3)
     return rank
 
 if __name__ == "__main__":
