@@ -1,0 +1,23 @@
+input {
+    margin:10px;
+}
+
+#as {
+    color: white;
+    background-color: blue;
+}
+
+.center {
+    text-align: center;
+}
+
+a {
+    float: right;
+}
+
+body {
+    font-size: 14px;
+    font-family: arial,sans-serif;
+    color: #222;
+}
+
