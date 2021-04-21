@@ -139,10 +139,16 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
+    # Value of joint posibilities of given number of genes/ traits for everyone
     traitProbability = 1
     genesProbability = 1
-    childGenesProbability = {0:{True:0, False:1.0}, 1:{True:0.5, False:0.5}, 2:{True:1.0, False:0}}
+    # Dictionary matching a number of parent's trait genes (keys) to posibility of his/her child inheriting it (values)
+    childTraitGeneProbability = {0:0, 1:0.5, 2:1.0}
+    
+    # Iterate over people calculating posibility of given for then features
     for person in people.keys():
+        
+        # Find number of wanted genes for given person
         if person in one_gene:
             genes = 1
         elif person in two_genes:
@@ -150,6 +156,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         else:
             genes = 0
         
+        # Calculate a posibility of having or not having a trait according to given number of genes
         if person in have_trait:
             if people[person]["trait"] == False:
                 return 0
@@ -159,6 +166,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 return 0
             traitProbability *= PROBS["trait"][genes][False]
         
+        # Calculate a posibility of having given number of genes for person
         mother = people[person]["mother"]
         father = people[person]["father"]
         if mother == None and father == None:
@@ -176,8 +184,8 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 dadGenes = 2
             else:
                 dadGenes = 0
-            traitFromMumPosibility = childGenesProbability[mumGenes][True]
-            traitFromDadPosibility = childGenesProbability[dadGenes][True]
+            traitFromMumPosibility = childTraitGeneProbability[mumGenes]
+            traitFromDadPosibility = childTraitGeneProbability[dadGenes]
             if genes == 0:
                 childGene1 = (1 - traitFromMumPosibility) * 0.99 + min(max(traitFromMumPosibility * 0.01, 0), 0.01)
                 childGene2 = (1 - traitFromDadPosibility) * 0.99 + min(max(traitFromDadPosibility * 0.01, 0), 0.01)
@@ -193,6 +201,8 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 childGeneD = traitFromDadPosibility * 0.99 + min(max((1 - traitFromDadPosibility) * 0.01, 0), 0.01)
                 childGenes = childGeneA * childGeneB + childGeneC * childGeneD
             genesProbability *= childGenes
+    
+    #return joint posibility of givrn genes and traits for everyone
     return traitProbability * genesProbability
 
 
