@@ -141,7 +141,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     """
     traitProbability = 1
     genesProbability = 1
-    childGenesProbability = {0:{0:1.0, 1:0.5, 2:None, 3:0, 4:0}, 1:{0:0, 1:0.5, 2:None, 3:0.5, 4:0}, 2:{0:0, 1:0, 2:None, 3:0.5, 4:1.0}}
+    childGenesProbability = {0:{True:0, False:1.0}, 1:{True:0.5, False:0.5}, 2:{True:1.0, False:0}}
     for person in people.keys():
         if person in one_gene:
             genes = 1
@@ -176,44 +176,23 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 dadGenes = 2
             else:
                 dadGenes = 0
-            parentsGenes = mumGenes + dadGenes
-            child = childGenesProbability[genes][parentsGenes] 
-            if child == None:
-                if genes == 0:
-                    if dadGenes == 2 or mumGenes == 2:
-                        child = 0
-                    else:
-                        child = 0.25
-                elif genes == 1:
-                    if dadGenes == 2 or mumGenes == 2:
-                        child = 1.0
-                    else:
-                        child = 0.5
-                else:
-                    if dadGenes == 2 or mumGenes == 2:
-                        child = 0
-                    else:
-                        child = 0.25
-            if child == 0:
-                if genes == 0:
-                    if parentsGenes == 3:
-                        child = 0.01 * 0.5 * 0.99 + 0.01 * 0.01 * 0.5
-                    elif parentsGenes == 2:
-                        child = 0.01 * 0.99
-                    else:
-                        child = 0.1 * 0.1
-                elif genes == 1:
-                        child = 0.01 * 0.99
-                else:
-                    if parentsGenes == 0:
-                        child = 0.01 * 0.01
-                    elif parentsGenes == 1:
-                        child = 0.01 * 0.5 * 0.99 + 0.01 * 0.01 * 0.5
-                    else:
-                        child = 0.01 * 0.99
+            traitFromMumPosibility = childGenesProbability[mumGenes][True]
+            traitFromDadPosibility = childGenesProbability[dadGenes][True]
+            if genes == 0:
+                childGene1 = (1 - traitFromMumPosibility) * 0.99 + min(max(traitFromMumPosibility * 0.01, 0), 0.01)
+                childGene2 = (1 - traitFromDadPosibility) * 0.99 + min(max(traitFromDadPosibility * 0.01, 0), 0.01)
+                childGenes = childGene1 * childGene2
+            elif genes == 2:
+                childGene1 = traitFromMumPosibility * 0.99 + min(max((1 - traitFromMumPosibility) * 0.01, 0), 0.01)
+                childGene2 = traitFromDadPosibility * 0.99 + min(max((1 - traitFromDadPosibility) * 0.01, 0), 0.01)
+                childGenes = childGene1 * childGene2
             else:
-                child *= (0.99*0.99 + (1 - child) * 0.01 * 0.01 * 0.5 + (1 - child) * 0.01 * 0.99 * 0.5)
-            genesProbability *= child
+                childGeneA = traitFromMumPosibility * 0.99 + min(max((1 - traitFromMumPosibility) * 0.01, 0), 0.01)
+                childGeneB = (1 - traitFromDadPosibility) * 0.99 + min(max(traitFromDadPosibility * 0.01, 0), 0.01)
+                childGeneC = (1 - traitFromMumPosibility) * 0.99 + min(max(traitFromMumPosibility * 0.01, 0), 0.01)
+                childGeneD = traitFromDadPosibility * 0.99 + min(max((1 - traitFromDadPosibility) * 0.01, 0), 0.01)
+                childGenes = childGeneA * childGeneB + childGeneC * childGeneD
+            genesProbability *= childGenes
     return traitProbability * genesProbability
 
 
