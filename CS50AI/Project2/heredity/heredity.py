@@ -139,7 +139,82 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    traitProbability = 1
+    genesProbability = 1
+    childGenesProbability = {0:{0:1.0, 1:0.5, 2:None, 3:0, 4:0}, 1:{0:0, 1:0.5, 2:None, 3:0.5, 4:0}, 2:{0:0, 1:0, 2:None, 3:0.5, 4:1.0}}
+    for person in people.keys():
+        if person in one_gene:
+            genes = 1
+        elif person in two_genes:
+            genes = 2
+        else:
+            genes = 0
+        
+        if person in have_trait:
+            if people[person]["trait"] == False:
+                return 0
+            traitProbability *= PROBS["trait"][genes][True]
+        else:
+            if people[person]["trait"] == True:
+                return 0
+            traitProbability *= PROBS["trait"][genes][False]
+        
+        mother = people[person]["mother"]
+        father = people[person]["father"]
+        if mother == None and father == None:
+            genesProbability *= PROBS["gene"][genes]
+        else:
+            if mother in one_gene:
+                mumGenes = 1
+            elif mother in two_genes:
+                mumGenes = 2
+            else:
+                mumGenes = 0
+            if father in one_gene:
+                dadGenes = 1
+            elif father in two_genes:
+                dadGenes = 2
+            else:
+                dadGenes = 0
+            parentsGenes = mumGenes + dadGenes
+            child = childGenesProbability[genes][parentsGenes] 
+            if child == None:
+                if genes == 0:
+                    if dadGenes == 2 or mumGenes == 2:
+                        child = 0
+                    else:
+                        child = 0.25
+                elif genes == 1:
+                    if dadGenes == 2 or mumGenes == 2:
+                        child = 1.0
+                    else:
+                        child = 0.5
+                else:
+                    if dadGenes == 2 or mumGenes == 2:
+                        child = 0
+                    else:
+                        child = 0.25
+            if child == 0:
+                if genes == 0:
+                    if parentsGenes == 3:
+                        child = 0.01 * 0.5 * 0.99 + 0.01 * 0.01 * 0.5
+                    elif parentsGenes == 2:
+                        child = 0.01 * 0.99
+                    else:
+                        child = 0.1 * 0.1
+                elif genes == 1:
+                        child = 0.01 * 0.99
+                else:
+                    if parentsGenes == 0:
+                        child = 0.01 * 0.01
+                    elif parentsGenes == 1:
+                        child = 0.01 * 0.5 * 0.99 + 0.01 * 0.01 * 0.5
+                    else:
+                        child = 0.01 * 0.99
+            else:
+                child *= (0.99*0.99 + (1 - child) * 0.01 * 0.01 * 0.5 + (1 - child) * 0.01 * 0.99 * 0.5)
+            genesProbability *= child
+    return traitProbability * genesProbability
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -149,7 +224,19 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    for person in probabilities.keys():
+        if person in one_gene:
+            genesNumber = 1
+        elif person in two_genes:
+            genesNumber = 2
+        else:
+            genesNumber = 0
+        if person in have_trait:
+            trait = True
+        else:
+            trait = False
+        probabilities[person]["gene"][genesNumber] += p
+        probabilities[person]["trait"][trait] += p
 
 
 def normalize(probabilities):
@@ -157,7 +244,14 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    for person in probabilities:
+        genesSum = probabilities[person]["gene"][0] + probabilities[person]["gene"][1] + probabilities[person]["gene"][2]
+        traitSum = probabilities[person]["trait"][True] + probabilities[person]["trait"][False]
+        for i in range(3):
+            probabilities[person]["gene"][i] /= genesSum
+        probabilities[person]["trait"][True] /= traitSum
+        probabilities[person]["trait"][False] /= traitSum
+
 
 
 if __name__ == "__main__":
