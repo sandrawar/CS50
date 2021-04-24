@@ -7,8 +7,15 @@ input {
     background-color: blue;
 }
 
+#search-bar, #search-bar-image {
+    border-radius: 12px;
+    font-size: large;
+}
+
 .center {
-    text-align: center;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 a {
