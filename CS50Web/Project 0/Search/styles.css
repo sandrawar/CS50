@@ -12,10 +12,18 @@ input {
     font-size: large;
 }
 
+#search-buttons {
+    text-align: center;
+}
+
 .center {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+.inline {
+    display: inline-block;
 }
 
 a {
