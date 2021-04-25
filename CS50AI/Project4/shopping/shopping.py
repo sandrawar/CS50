@@ -1,5 +1,6 @@
 import csv
 import sys
+import calendar
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -59,16 +60,46 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
-
+    evidenceSet = []
+    labels =[]
+    with open("shopping.csv", newline='') as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            evidence = []
+            for i in range(0, 6, 2):
+                evidence.append(int(row[i]))
+                evidence.append(float(row[i+1]))
+            for i in range(6, 10):
+                evidence.append(float(row[i]))
+            try:
+                monthNumber = list(calendar.month_abbr).index(row[10])
+            except:
+                monthNumber = list(calendar.month_name).index(row[10])
+            evidence.append(monthNumber)
+            for i in range(11, 15):
+                evidence.append(int(row[i]))
+            if row[15] == "Returning_Visitor":
+                evidence.append(1)
+            else:
+                evidence.append(0)
+            if row[16] == "TRUE":
+                evidence.append(1)
+            else:
+                evidence.append(0)
+            
+            evidenceSet.append(evidence)
+            labels.append(1 if row[17] == "TRUE" else 0)
+    return (evidenceSet, labels)
 
 def train_model(evidence, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
-    raise NotImplementedError
-
+    model = KNeighborsClassifier(n_neighbors=1)
+    model.fit(evidence, labels)
+    return model
 
 def evaluate(labels, predictions):
     """
@@ -85,7 +116,24 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    setSize = len(labels)
+    correctNegative = 0
+    correctPositive = 0
+    negativeSetSize = 0
+    positiveSetSize = 0
+    for i in range(setSize):
+        actual = labels[i]
+        if actual == 1:
+            positiveSetSize += 1
+            if actual == predictions[i]:
+                correctPositive += 1
+        else:
+            negativeSetSize += 1
+            if actual == predictions[i]:
+                correctNegative += 1
+    sensitivity = correctPositive / positiveSetSize
+    specificity = correctNegative / negativeSetSize
+    return (sensitivity, specificity)
 
 
 if __name__ == "__main__":
