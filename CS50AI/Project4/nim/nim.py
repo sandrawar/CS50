@@ -153,7 +153,7 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        if  epsilon and random.random() <= self.epsilon:
+        if epsilon and random.random() <= self.epsilon:
             actions = []
             for action in Nim.available_actions(state):
                 actions.append(action)
