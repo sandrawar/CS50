@@ -1,4 +1,5 @@
 import sys
+from operator import itemgetter
 
 from crossword import *
 
@@ -170,7 +171,6 @@ class CrosswordCreator():
             return False
         if any(var.length != len(assignment[var]) for var in assignment.keys()):
             return False
-        
         for key, overlap in self.crossword.overlaps.items():
             if overlap != None and key[0] in assignment and key[1] in assignment:
                 xWord = assignment[key[0]]
@@ -188,7 +188,24 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        return domains[var]
+        #return domains[var]
+        options = assignment[var][:]
+        order = []
+        for domain in options:
+            ruledOut = 0
+            for n in self.crossword.neighbors(var):
+                overlap = self.crossword.overlaps[var, n]
+                if overlap != None:
+                    optionChar = domain[overlap[0]]
+                    for word in self.domains[n]:
+                        if word[overlap[1]] != optionChar:
+                            ruledOut += 1
+            order.append((domain, ruledOut))
+            #print(order)
+        order.sort(key=itemetter[1])
+        #print(order)
+        return list(var[0] for var in order) 
+        
 
     def select_unassigned_variable(self, assignment):
         """
@@ -201,7 +218,20 @@ class CrosswordCreator():
         #for var in self.domains.keys():
         #    if var not in assignment.keys():
         #        return var
-        return next(filter(lambda var: var not in assignment.keys(), self.domains.keys()))
+
+        #return next(filter(lambda var: var not in assignment.keys(), self.domains.keys()))
+        minimum = len(self.crossword.words)
+        for var in self.domains:
+            if var not in assignment:
+                domainsNumber = len(self.domains[var])
+                if domainsNumber < minimum:
+                    firstOrderVariable = var
+                    minimum = domainsNumber
+                if domainsNumber == minimum:
+                    if len(self.crossword.neighbors(var)) >= len(self.crossword.neighbors(firstOrderVariable)):
+                        firstOrderVariable = var
+        return firstOrderVariable
+
 
     def backtrack(self, assignment):
         """

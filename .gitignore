@@ -1,6 +1,4 @@
 *.pyc
 CS50Web/Project 1/wiki/wiki/db.sqlite3
 CS50Web/Project 2/commerce/db.sqlite3
-CS50Web/Project 2/commerce/auctions/migrations/__init__.py
-CS50Web/Project 2/commerce/auctions/migrations/0001_initial.py
-CS50Web/Project 2/commerce/auctions/migrations/0002_auto_20210422_1040.py
+CS50AI/Project3/crossword/output.png
