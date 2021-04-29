@@ -1,9 +1,20 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-
-    <h2>{{ listing.title }}</h2>
-    
+    <div>
+    <h1>{{ listing.title }}</h1>
+    <img src="{{ listing.photo }}" alt="photo not provided" style="margin:20px">
+    </div>
+    <h4>Description:</h4>
+    <p>{{ listing.description }}</p>
+    <h3>current price: {{ currentprice }}</h3>
+    {% if user.is_authenticated %}
+    <form action="{% url 'watchlist' %}" method="post">
+        {% csrf_token %}
+        <input name="product" type="text" value="{{ listing.id }}" hidden>
+        <input type="submit" value="Add to watchlist">
+    </form>
+    {% endif %}
 
 
 {% endblock %}

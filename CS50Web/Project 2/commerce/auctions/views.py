@@ -5,11 +5,15 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Listing, Bid
+from operator import attrgetter
+
+from .models import User, Listing, Bid, Watchlist
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/active.html", {
+        "listings": Listing.objects.all()
+    })
 
 
 def login_view(request):
@@ -70,33 +74,47 @@ def create(request):
             title = request.POST["title"]
             description = request.POST["description"]
             bid = request.POST["bid"]
-            #category = request.POST["category"]
+            category = request.POST["category"]
         except IntegrityError:
             return render(request, "auctions/create.html", {
                 "message": "Not all data provided."
             })
+        photo = ''
         try:
             photo = request.POST["photo"]   
         except:
             pass
-        try:
-            listing = Listing(title=title, description=description, bid=bid, photo=photo, category=category)
-        except:
-            listing = Listing(title=title, description=description, bid=bid) #, category=category)
+        listing = Listing(title=title, description=description, minimalPrice=bid, photo=photo, category=category, owner=request.user)
         listing.save()
-        bid = Bid(product=listing, price=bid)
-        bid.save()
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/create.html")
+    
+def listing(request, listing):
+    product = Listing.objects.get(id=listing)
+    bids = product.bids.order_by('-price').all()[:2]
+    if len(bids) == 0:
+        currentprice = product.minimalPrice
+    elif len(bids) == 1:
+        currentprice = product.minimalPrice + 1
+    else:
+        currentprice = bids[1].price + 1
 
-def active(request):
-    return render(request, "auctions/active.html", {
-        "listings": Listing.objects.all()
+    currentprice = product.minimalPrice
+    return render(request, "auctions/listing.html", {
+        "listing": product,
+        "currentprice": currentprice
     })
 
-def listing(request, listing):
-    return render(request, "auctions/listing.html", {
-        "listing": Listing.objects.get(title=listing),
-        #"bid": Bid.objects.get(product=listing)
+@login_required
+def watchlist(request):
+    if request.method == "POST":
+        product = int(request.POST["product"])
+        watchlist = Watchlist(user=request.user, listing=Listing.objects.get(id=product))
+        watchlist.save()
+        userWatchlist = []
+        for listing in request.user.watchlist.order_by('id').all():
+            userWatchlist.append(Listing.objects.get(id=listing.listing.id))
+    return render(request, "auctions/watchlist.html", {
+        "listings": userWatchlist
     })

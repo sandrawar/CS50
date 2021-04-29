@@ -2,13 +2,13 @@
 
 {% block body %}
 
-    <h2>Active listings</h2>
+    <h2>Your watchlist</h2>
 
     <ul>
     {% for listing in listings %}
         <li><a href="{% url 'listing' listing.id %}">{{ listing.title }}</a> : {{ listing.description }} {{ listing.photo }}</li>
         {% empty %}
-        <p>There are not active listings</p>
+        <p>You didn't add anything to your watchlist.</p>
     {% endfor %}
     </ul>
 
